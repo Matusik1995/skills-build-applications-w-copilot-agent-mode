@@ -1,122 +1,112 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import Activities from './components/Activities.jsx'
+import Leaderboard from './components/Leaderboard.jsx'
+import Teams from './components/Teams.jsx'
+import Users from './components/Users.jsx'
+import Workouts from './components/Workouts.jsx'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const apiRoot = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api`
+  : '/api'
+
+const collections = ['activities', 'leaderboard', 'teams', 'users', 'workouts']
+
+function getItems(payload) {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.results)) return payload.results
+  if (Array.isArray(payload?.data)) return payload.data
+  if (Array.isArray(payload?.items)) return payload.items
+  return []
+}
+
+function Dashboard() {
+  const [records, setRecords] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  async function loadCollections(showLoading = true) {
+    if (showLoading) setLoading(true)
+    setError('')
+    try {
+      const responses = await Promise.all(
+        collections.map(async (collection) => {
+          const response = await fetch(`${apiRoot}/${collection}/`)
+          if (!response.ok) throw new Error(`Unable to load ${collection}`)
+          return [collection, getItems(await response.json())]
+        }),
+      )
+      setRecords(Object.fromEntries(responses))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    async function loadInitialCollections() {
+      try {
+        const responses = await Promise.all(
+          collections.map(async (collection) => {
+            const response = await fetch(`${apiRoot}/${collection}/`)
+            if (!response.ok) throw new Error(`Unable to load ${collection}`)
+            return [collection, getItems(await response.json())]
+          }),
+        )
+        setRecords(Object.fromEntries(responses))
+      } catch (requestError) {
+        setError(requestError.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadInitialCollections()
+  }, [])
+
+  const viewProps = { loading, error, onRetry: loadCollections }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-shell">
+      <header className="app-header">
+        <NavLink className="brand" to="/">
+          <span className="brand-mark">OF</span>
+          <span>
+            <strong>OctoFit</strong>
+            <small>TRACKER</small>
+          </span>
+        </NavLink>
+        <nav className="primary-nav" aria-label="Primary navigation">
+          <NavLink to="/activities">Activities</NavLink>
+          <NavLink to="/workouts">Workouts</NavLink>
+          <NavLink to="/teams">Teams</NavLink>
+          <NavLink to="/leaderboard">Leaderboard</NavLink>
+          <NavLink to="/users">Users</NavLink>
+        </nav>
+        <span className={`connection ${codespaceName ? 'online' : ''}`}>
+          {codespaceName ? 'Codespace API' : 'Local API'}
+        </span>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <main className="page-content">
+        <Routes>
+          <Route path="/" element={<Navigate to="/activities" replace />} />
+          <Route path="/activities" element={<Activities items={records.activities} {...viewProps} />} />
+          <Route path="/workouts" element={<Workouts items={records.workouts} {...viewProps} />} />
+          <Route path="/teams" element={<Teams items={records.teams} {...viewProps} />} />
+          <Route path="/leaderboard" element={<Leaderboard items={records.leaderboard} {...viewProps} />} />
+          <Route path="/users" element={<Users items={records.users} {...viewProps} />} />
+        </Routes>
+      </main>
+    </div>
   )
+}
+
+function App() {
+  return <Dashboard />
 }
 
 export default App

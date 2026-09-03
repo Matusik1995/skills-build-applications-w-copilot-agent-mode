@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import Activities from './components/Activities.jsx'
+import { endpoint as activitiesEndpoint } from './components/Activities.jsx'
 import Leaderboard from './components/Leaderboard.jsx'
+import { endpoint as leaderboardEndpoint } from './components/Leaderboard.jsx'
 import Teams from './components/Teams.jsx'
+import { endpoint as teamsEndpoint } from './components/Teams.jsx'
 import Users from './components/Users.jsx'
+import { endpoint as usersEndpoint } from './components/Users.jsx'
 import Workouts from './components/Workouts.jsx'
+import { endpoint as workoutsEndpoint } from './components/Workouts.jsx'
 import './App.css'
 
 const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
@@ -12,7 +17,13 @@ const apiRoot = codespaceName
   ? `https://${codespaceName}-8000.app.github.dev/api`
   : '/api'
 
-const collections = ['activities', 'leaderboard', 'teams', 'users', 'workouts']
+const collections = [
+  ['activities', activitiesEndpoint],
+  ['leaderboard', leaderboardEndpoint],
+  ['teams', teamsEndpoint],
+  ['users', usersEndpoint],
+  ['workouts', workoutsEndpoint],
+]
 
 function getItems(payload) {
   if (Array.isArray(payload)) return payload
@@ -32,8 +43,8 @@ function Dashboard() {
     setError('')
     try {
       const responses = await Promise.all(
-        collections.map(async (collection) => {
-          const response = await fetch(`${apiRoot}/${collection}/`)
+        collections.map(async ([collection, endpoint]) => {
+          const response = await fetch(`${apiRoot}${endpoint.replace('/api', '')}`)
           if (!response.ok) throw new Error(`Unable to load ${collection}`)
           return [collection, getItems(await response.json())]
         }),
@@ -50,8 +61,8 @@ function Dashboard() {
     async function loadInitialCollections() {
       try {
         const responses = await Promise.all(
-          collections.map(async (collection) => {
-            const response = await fetch(`${apiRoot}/${collection}/`)
+          collections.map(async ([collection, endpoint]) => {
+            const response = await fetch(`${apiRoot}${endpoint.replace('/api', '')}`)
             if (!response.ok) throw new Error(`Unable to load ${collection}`)
             return [collection, getItems(await response.json())]
           }),

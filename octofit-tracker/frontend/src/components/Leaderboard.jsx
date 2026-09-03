@@ -1,3 +1,5 @@
+export const endpoint = '/api/leaderboard/'
+
 function CollectionState({ loading, error, onRetry }) {
   if (loading) return <p className="state-message">Loading leaderboard...</p>
   if (error) return <div className="state-message"><p>{error}</p><button className="btn btn-dark" onClick={onRetry}>Retry</button></div>

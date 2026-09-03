@@ -1,3 +1,5 @@
+export const endpoint = '/api/activities/'
+
 function titleCase(value) {
   return String(value || 'Activity').replace(/[-_]/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
 }

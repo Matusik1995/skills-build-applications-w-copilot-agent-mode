@@ -2,12 +2,16 @@ import express from 'express'
 import { connectDatabase } from './config/database.js'
 import apiRouter from './routes.js'
 
+function getApiBaseUrl(codespaceName: string | undefined, port: number) {
+  return codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev`
+    : `http://localhost:${port}`
+}
+
 const app = express()
 const port = Number(process.env.PORT) || 8000
 const codespaceName = process.env.CODESPACE_NAME
-const apiBaseUrl = codespaceName
-  ? `https://${codespaceName}-8000.app.github.dev`
-  : `http://localhost:${port}`
+const apiBaseUrl = getApiBaseUrl(codespaceName, port)
 
 app.use(express.json())
 app.use((request, response, next) => {
